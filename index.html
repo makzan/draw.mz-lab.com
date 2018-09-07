@@ -1,20 +1,65 @@
 <title>draw.mz-lab.com</title>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+  }
   canvas {
     background: FLORALWHITE;
   }
+  .top-bar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    width: 100vw;
+    background: SNOW;
+  }
+  .top-bar a {
+    display: inline-block;
+    background: WHITE;
+    color: STEELBLUE;
+    padding: 10px 20px;
+    text-decoration: none;
+  }
+  #clear-signature {
+    position: fixed;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    background: WHITE;
+    color: STEELBLUE;
+    padding: 10px 20px;
+    text-decoration: none;
+  }
+  textarea {
+    width: 100%;
+    min-height: 100px;
+  }
 </style>
 
-<canvas id="canvas" width=1920 height=980>
-  A canvas of drawing pad
-</canvas>
+<div class='top-bar'>
+  <a href="#draw">Draw</a>
+  <a href="#export">Export</a>
+</div>
+
+<div id="draw">
+  <canvas id="canvas" width=1920 height=980>
+    A canvas of drawing pad.
+  </canvas>
+</div>
+
+<div id="export">
+  <textarea id="source-output"></textarea>
+  <img id="img-output">
+</div>
 
 <p>
   <a href="#" id="clear-signature" class="small secondary button">Clear</a>
 </p>
 
-<footer>by makzan</footer>
+<footer>by makzan.</footer>
 
 
 <script>
@@ -132,7 +177,7 @@
     return false;
   });
 
-  $("input[type=submit]").click(function(){
+  $("[href='#export']").click(function(){
     // var data = findTopLeftPosition();
 
 
@@ -149,7 +194,8 @@
     ctx1.putImageData(imageData, 0, 0);
 
     var data = canvas1.toDataURL();
-    $("#entry_content").val(data);
+    $("#source-output").val(data);
+    $("#img-output").attr('src', data);
   });
 
 

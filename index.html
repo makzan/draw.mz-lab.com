@@ -1,1 +1,156 @@
+<style>
+  canvas {
+    background: FLORALWHITE;
+  }
+</style>
+
+<canvas id="canvas" width=1920 height=980>
+  A canvas of drawing pad
+</canvas>
+
+<p>
+  <a href="#" id="clear-signature" class="small secondary button">Clear</a>
+</p>
+
 <footer>by makzan</footer>
+
+
+<script>
+  $(document).on("touchstart", function(){});
+
+
+  function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    if (evt.touches) {
+      var touch = evt.touches[0]; // Get the information for finger #1
+      var touchX=touch.pageX - rect.left;
+      var touchY=touch.pageY - (rect.top + window.scrollY);
+      return {
+        x: touchX,
+        y: touchY - 0, // subtle manual offset to make the line appear slightly above the finger.
+      }
+    }
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
+  }
+
+  var canvas = $("#canvas").get(0);
+  var ctx = canvas.getContext('2d');
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 5;
+  ctx.lineCap = "round";
+
+  var startX = 0;
+  var startY = 0;
+  var isMouseDown = false;
+
+  var nextX = 0;
+  var nextY = 0;
+
+  var leftMostX=9999, rightMostX=0, topMostY=9999, bottomMostY=0;
+
+  $(canvas).on('mousedown touchstart', function(e){
+    startX = getMousePos(canvas, e.originalEvent).x;
+    startY = getMousePos(canvas, e.originalEvent).y;
+    isMouseDown = true;
+
+    return false;
+  });
+
+  $(canvas).on('mousemove touchmove', function(e){
+    if (isMouseDown) {
+      nextX = getMousePos(canvas, e.originalEvent).x;
+      nextY = getMousePos(canvas, e.originalEvent).y;
+
+      if (nextX < leftMostX) leftMostX = nextX;
+      if (startX < leftMostX) leftMostX = startX;
+      if (nextY < topMostY) topMostY = nextY;
+      if (startY < topMostY) topMostY = startY;
+      if (nextX > rightMostX) rightMostX = nextX;
+      if (startX > rightMostX) rightMostX = startX;
+      if (nextY > bottomMostY) bottomMostY = nextY;
+      if (startY > bottomMostY) bottomMostY = startY;
+
+
+      var a = nextX-startX;
+      var b = nextY-startY;
+      var c = Math.sqrt( a*a + b*b );
+      c = Math.max(50, c); // max at 50
+
+      ctx.lineWidth = c / 30;
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(nextX, nextY);
+      ctx.stroke();
+
+      startX = nextX;
+      startY = nextY;
+
+      return false;
+    }
+  });
+
+  $(canvas).on('mouseup touchend', function(){
+    isMouseDown = false;
+  });
+
+  function isBlank(data, i) {
+    // console.log("pixel:",pixel);
+    if (data[i]===0 && data[i+1]===0 && data[i+2]===0 && data[i+3]===0)
+      return true;
+    return false;
+  }
+  // function findTopLeftPosition() {
+  //   var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  //   // console.log("imageData:",imageData.data.length);
+  //   var x1, y1, x2, y2;
+  //   for (var i=0; i<imageData.data.length; i+=4) {
+  //     if (!isBlank(imageData.data, i)) {
+  //       x1 = i / 4 % imageData.width;
+  //       y1 = i / 4 % imageData.height;
+  //       console.log(i, x1, y1);
+  //       break;
+  //     }
+  //   }
+  //   var canvas1 = document.createElement("canvas");
+  //   canvas1.width = 100;
+  //   canvas1.height = 100;
+  //   var ctx1 = canvas1.getContext("2d");
+  //   ctx1.putImageData(imageData, 0, 0);
+  //   return canvas1.toDataURL();
+  // }
+
+
+  $("#clear-signature").click(function(){
+    canvas.width = canvas.width;
+    leftMostX=9999, rightMostX=0, topMostY=9999, bottomMostY=0;
+    return false;
+  });
+
+  $("input[type=submit]").click(function(){
+    // var data = findTopLeftPosition();
+
+
+    var margin = 10;
+
+    var w = rightMostX - leftMostX;
+    var h = bottomMostY - topMostY;
+
+    var imageData = ctx.getImageData(leftMostX - margin, topMostY - margin, w + margin*2, h+margin*2);
+    var canvas1 = document.createElement("canvas");
+    canvas1.width = w + margin*2;
+    canvas1.height = h + margin*2;
+    var ctx1 = canvas1.getContext("2d");
+    ctx1.putImageData(imageData, 0, 0);
+
+    var data = canvas1.toDataURL();
+    $("#entry_content").val(data);
+  });
+
+
+
+</script>
+

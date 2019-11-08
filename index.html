@@ -133,7 +133,7 @@
 
     isMouseDown = true;
 
-    return false;
+    e.preventDefault();
   }
   canvas.addEventListener('mousedown', mousedown);
   canvas.addEventListener('touchstart', mousedown);
@@ -171,15 +171,16 @@
       startX = nextX;
       startY = nextY;
 
-      return false;
+      e.preventDefault();
     }
   }
 
   canvas.addEventListener('mousemove', mousemove);
   canvas.addEventListener('touchmove', mousemove);
 
-  var mouseup = function(){
+  var mouseup = function(e){
     isMouseDown = false;
+    e.preventDefault();
   }
 
   canvas.addEventListener('mouseup', mouseup);

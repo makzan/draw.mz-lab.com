@@ -1,6 +1,5 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>draw.mz-lab.com</title>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <style>
   html, body {
     margin: 0;
@@ -41,8 +40,9 @@
 </style>
 
 <div class='top-bar'>
-  <a href="#draw">Draw</a>
-  <a href="#export">Export</a>
+  <a id="draw-button" href="#draw">Draw</a>
+  <a id="erase-button" href="#erase">Erase</a>
+  <a id="export-button" href="#export">Export</a>
 </div>
 
 <div id="draw">
@@ -62,10 +62,24 @@
 
 <footer>by makzan.</footer>
 
-
 <script>
-  $(document).on("touchstart", function(){});
+  function $(selector) {
+    return document.querySelector(selector);
+  }
+  function $$(selector) {
+    return document.querySelectorAll(selector);
+  }
 
+
+  var currentTool = 'draw';
+  $("#erase-button").addEventListener('click', function(e){
+    currentTool = 'erase';
+    e.preventDefault();
+  });
+  $("#draw-button").addEventListener('click', function(e){
+    currentTool = 'draw';
+    e.preventDefault();
+  });
 
   function getMousePos(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
@@ -84,7 +98,7 @@
     };
   }
 
-  var canvas = $("#canvas").get(0);
+  var canvas = document.getElementById('canvas');
   var ctx = canvas.getContext('2d');
   ctx.strokeStyle = "black";
   ctx.lineWidth = 5;
@@ -97,20 +111,38 @@
   var nextX = 0;
   var nextY = 0;
 
+  var eraseWidth = 30;
+
   var leftMostX=9999, rightMostX=0, topMostY=9999, bottomMostY=0;
 
-  $(canvas).on('mousedown touchstart', function(e){
-    startX = getMousePos(canvas, e.originalEvent).x;
-    startY = getMousePos(canvas, e.originalEvent).y;
+
+
+  var mousedown = function(e){
+    startX = getMousePos(canvas, e).x;
+    startY = getMousePos(canvas, e).y;
+
+    if (currentTool == 'draw') {
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(startX+1, startY+1);
+      ctx.stroke();
+    } else {
+      ctx.clearRect(startX-eraseWidth/2, startY-eraseWidth/2, eraseWidth, eraseWidth);
+    }
+
+
     isMouseDown = true;
 
     return false;
-  });
+  }
+  canvas.addEventListener('mousedown', mousedown);
+  canvas.addEventListener('touchstart', mousedown);
 
-  $(canvas).on('mousemove touchmove', function(e){
+
+  var mousemove = function(e){
     if (isMouseDown) {
-      nextX = getMousePos(canvas, e.originalEvent).x;
-      nextY = getMousePos(canvas, e.originalEvent).y;
+      nextX = getMousePos(canvas, e).x;
+      nextY = getMousePos(canvas, e).y;
 
       if (nextX < leftMostX) leftMostX = nextX;
       if (startX < leftMostX) leftMostX = startX;
@@ -124,26 +156,34 @@
 
       var a = nextX-startX;
       var b = nextY-startY;
-      var c = Math.sqrt( a*a + b*b );
-      c = Math.max(50, c); // max at 50
 
-      ctx.lineWidth = c / 30;
+      if (currentTool == 'draw') {
+        ctx.lineWidth = 2;
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(nextX, nextY);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(nextX, nextY);
+        ctx.stroke();
+      } else {
+        ctx.clearRect(startX-eraseWidth/2, startY-eraseWidth/2, eraseWidth, eraseWidth);
+      }
 
       startX = nextX;
       startY = nextY;
 
       return false;
     }
-  });
+  }
 
-  $(canvas).on('mouseup touchend', function(){
+  canvas.addEventListener('mousemove', mousemove);
+  canvas.addEventListener('touchmove', mousemove);
+
+  var mouseup = function(){
     isMouseDown = false;
-  });
+  }
+
+  canvas.addEventListener('mouseup', mouseup);
+  canvas.addEventListener('touchend', mouseup);
 
   function isBlank(data, i) {
     // console.log("pixel:",pixel);
@@ -172,13 +212,14 @@
   // }
 
 
-  $("#clear-signature").click(function(){
+  document.getElementById('clear-signature').addEventListener('click', function(){
     canvas.width = canvas.width;
     leftMostX=9999, rightMostX=0, topMostY=9999, bottomMostY=0;
+    currentTool = 'draw';
     return false;
   });
 
-  $("[href='#export']").click(function(){
+  document.querySelector("[href='#export']").addEventListener('click', function(){
     // var data = findTopLeftPosition();
 
 
@@ -195,8 +236,8 @@
     ctx1.putImageData(imageData, 0, 0);
 
     var data = canvas1.toDataURL();
-    $("#source-output").val(data);
-    $("#img-output").attr('src', data);
+    $("#source-output").value = data;
+    $("#img-output").setAttribute('src', data);
   });
 
 
